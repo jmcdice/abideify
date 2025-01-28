@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abideify"
+version = "0.1.0"
+description = "PDF to simplified Markdown converter using AI"
+authors = [
+  { name="Joey", email="jmcdice@gmail.com" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = "==3.11.*"
+keywords = ["pdf", "markdown", "openai", "plain-language"]
+
+dependencies = [
+  "docling",
+  "PyMuPDF",
+  "openai",
+  "markdown",
+  "markdownify",
+  "unrealspeech",
+  "click",
+  "pydub", 
+  "simpleaudio"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
