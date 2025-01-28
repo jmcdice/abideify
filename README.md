@@ -2,7 +2,7 @@
 
 > Take 'er easy with your PDFs man - convert, simplify, and listen to your documents
 
-Abideify is a powerful document processing pipeline that transforms complex PDF documents into simplified Markdown text and optional podcast-style audio. Named after The Dude, Abideify helps you process and consume content with minimal hassle.
+Turn your PDF into a podcast with a single command. Abideify is a powerful document processing pipeline that transforms complex PDF documents into simplified Markdown text and optional podcast-style audio. Named after The Dude, Abideify helps you process and consume content with minimal hassle.
 
 ## Key Features
 
