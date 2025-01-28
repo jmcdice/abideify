@@ -4,6 +4,8 @@
 
 Turn your PDF into a podcast with a single command. Abideify is a powerful document processing pipeline that transforms complex PDF documents into simplified Markdown text and optional podcast-style audio. Named after The Dude, Abideify helps you process and consume content with minimal hassle.
 
+**Want to hear it in action?** Listen to how Abideify transformed [this technical PDF about DeepSeek](pdf/DeepSeek_R1.pdf) into [this easy-to-follow podcast](https://storage.googleapis.com/echo-004/simplified.mp3).
+
 ## Key Features
 
 - **PDF to Markdown Conversion**: Seamlessly transform PDF documents into clean Markdown using `docling`
