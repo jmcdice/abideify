@@ -55,11 +55,23 @@ Full example with all features enabled:
 
 ```bash
 python -m abideify.cli pdf/DeepSeek_R1.pdf \
-    --model gpt-3.5-turbo \
+    --model gpt-4o \
     --max_chunk_size 6000 \
     --tts \
     --voice Scarlett
 ```
+
+python -m abideify.cli pdf/DeepSeek_R1.pdf \
+    --model gpt-4o \
+    --max_chunk_size 6000 \
+    --tts \
+    --voice Scarlett
+```
+
+Want to hear an example? We've processed the included sample PDF (DeepSeek_R1.pdf) and you can listen to the result here:
+[Listen to Sample Audio](https://storage.googleapis.com/echo-004/simplified.mp3)
+
+This will give you an idea of how Abideify transforms technical documents into clear, accessible audio content.
 
 ## Command Line Options
 
