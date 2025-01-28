@@ -26,7 +26,7 @@ Abideify is a powerful document processing pipeline that transforms complex PDF 
    cd abideify
    ```
 
-2. Set up a Python virtual environment:
+2. Set up a Python virtual environment (only use python 3.11!):
    ```bash
    python3.11 -m venv .venv
    source .venv/bin/activate 
