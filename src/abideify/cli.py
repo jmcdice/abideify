@@ -1,3 +1,4 @@
+# cli.py
 import argparse
 import asyncio
 import logging
@@ -16,48 +17,46 @@ logger = logging.getLogger(__name__)
 
 def sanitize_filename(filename: str) -> str:
     """
-    Lowercases, removes .pdf extension, replaces non-alnum chars with underscores.
+    Lowercases, removes .pdf, .md, or .markdown extension, and replaces non-alphanumeric
+    characters with underscores.
     """
     name = filename.lower()
-    # Remove trailing .pdf if present
-    name = re.sub(r'\.pdf$', '', name, flags=re.IGNORECASE)
-    # Replace any non-alphanumeric sequence with underscore
+    name = re.sub(r'\.(pdf|md|markdown)$', '', name, flags=re.IGNORECASE)
     name = re.sub(r'[^a-z0-9]+', '_', name)
-    # Remove leading/trailing underscores
-    name = name.strip('_')
-    return name
+    return name.strip('_')
 
 async def main_async(args) -> None:
-    # 1) Resolve safe project dir
-    pdf_path = Path(args.input_pdf)
-    safe_name = sanitize_filename(pdf_path.name)
+    input_path = Path(args.input_file)
+    safe_name = sanitize_filename(input_path.name)
     outdir = Path("outputs") / safe_name
     outdir.mkdir(parents=True, exist_ok=True)
 
-    # 2) Build final output paths
-    # We'll keep intermediate + final MD files in the outdir
-    intermediate_md = outdir / "original.md"
-    final_md        = outdir / "simplified.md"
-    final_mp3       = outdir / "simplified.mp3"  # default, can override
-    
-    # If the user provided a custom output_md / output_mp3, override
+    # Set default output paths
+    final_md = outdir / "simplified.md"
+    final_mp3 = outdir / "simplified.mp3"
     if args.output_md:
         final_md = Path(args.output_md)
     if args.output_mp3:
         final_mp3 = Path(args.output_mp3)
 
-    # 3) Convert PDF → MD
     converter = PDFConverter()
-    # We'll trick "ConversionPaths" by passing our own paths
-    paths = ConversionPaths(
-        input_pdf=pdf_path,
-        intermediate_md=intermediate_md,
-        output_simplified_md=final_md,
-    )
+    if input_path.suffix.lower() == ".pdf":
+        # PDF input: convert PDF to Markdown.
+        intermediate_md = outdir / "original.md"
+        paths = ConversionPaths(
+            input_pdf=input_path,
+            intermediate_md=intermediate_md,
+            output_simplified_md=final_md,
+        )
+        converter.convert_pdf_to_markdown(paths)
+    elif input_path.suffix.lower() in [".md", ".markdown"]:
+        # Markdown input: use it as-is.
+        intermediate_md = input_path
+    else:
+        logger.error("Unsupported file type. Please provide a PDF or Markdown file.")
+        sys.exit(1)
 
-    converter.convert_pdf_to_markdown(paths)
-
-    # 4) Simplify using AI
+    # Simplify using AI.
     ai = AIProcessor(
         max_chunk_size=args.max_chunk_size,
         concurrent_requests=args.concurrent_requests,
@@ -78,11 +77,11 @@ async def main_async(args) -> None:
     simplified_content = "\n\n".join(filter(None, simplified_list))
     simplified_content = converter.format_final_markdown(simplified_content)
 
-    # Write final Markdown
+    # Write final simplified Markdown.
     final_md.write_text(simplified_content, encoding="utf-8")
     logger.info(f"Simplified Markdown saved to: {final_md}")
 
-    # 5) If TTS
+    # Optional TTS synthesis.
     if args.tts:
         logger.info("Starting TTS synthesis...")
         api_key = args.api_key or os.environ.get("UNREAL_SPEECH_API_KEY")
@@ -90,8 +89,7 @@ async def main_async(args) -> None:
             logger.error("No UnrealSpeech API key found; set --api_key or UNREAL_SPEECH_API_KEY.")
             sys.exit(1)
 
-        # Chunk text for TTS
-        from .unreal_cli import chunk_text  # or just copy chunk_text here
+        from .unreal_cli import chunk_text  # reuse chunking logic
         text_chunks = chunk_text(simplified_content, chunk_size=args.tts_chunk_size)
         logger.info(f"Chunked text into {len(text_chunks)} parts for TTS.")
 
@@ -118,12 +116,11 @@ async def main_async(args) -> None:
         final_audio.export(final_mp3, format="mp3")
         logger.info(f"TTS completed! Combined MP3 saved to {final_mp3}")
 
-
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert a PDF to simpler Markdown with optional TTS."
+        description="Convert a PDF or Markdown to simplified Markdown with optional TTS."
     )
-    parser.add_argument("input_pdf", help="Path to the input PDF file")
+    parser.add_argument("input_file", help="Path to the input PDF or Markdown file")
     parser.add_argument("--output_md", default=None, help="Override default final .md path")
     parser.add_argument("--max_chunk_size", type=int, default=7000,
                         help="Max chunk size in characters for AI simplification.")
@@ -132,7 +129,7 @@ def main():
     parser.add_argument("--model", type=str, default="gpt-4",
                         help="OpenAI model name (e.g. gpt-3.5-turbo or gpt-4).")
 
-    # TTS options
+    # TTS options.
     parser.add_argument("--tts", action="store_true",
                         help="Enable text-to-speech after simplification.")
     parser.add_argument("--api_key", default=None,
@@ -155,9 +152,10 @@ def main():
     try:
         asyncio.run(main_async(args))
     except Exception as e:
-        logging.error(f"Conversion failed: {e}", exc_info=True)
+        logger.error(f"Conversion failed: {e}", exc_info=True)
         sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
 
